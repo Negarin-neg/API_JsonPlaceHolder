@@ -182,10 +182,24 @@ class MainWindow:
         details_frame = ttk.LabelFrame(
             container,
             text="جزئیات رکورد انتخاب‌شده",
+            labelanchor="ne",
             padding=10,
             bootstyle="info",
         )
-        details_frame.grid(row=5, column=0, sticky="ew", pady=(0, 10))
+        details_frame.grid(
+            row=5,
+            column=0,
+            sticky="ew",
+            pady=(0, 10),
+        )
+        self.details_hint = ttk.Label(
+            details_frame,
+            text="",
+            anchor="e",
+            justify="right",
+            padding=(10, 12),
+            font=("Segoe UI", 11),
+        )
 
         self.details = ScrolledText(
             details_frame,
@@ -207,9 +221,15 @@ class MainWindow:
         ttk.Label(
             container,
             textvariable=self.status,
-            anchor="w",
+            anchor="e",
+            justify="right",
             wraplength=850,
-        ).grid(row=6, column=0, sticky="ew")
+            font=("Segoe UI", 10),
+        ).grid(
+            row=6,
+            column=0,
+            sticky="ew",
+        )
 
     def _request_load(self) -> None:
         if not self.loading:
@@ -351,9 +371,24 @@ class MainWindow:
             self._render_page()
 
     def _set_details(self, text: str) -> None:
+        is_json = text.lstrip().startswith(("{", "["))
+
         self.details.configure(state="normal")
         self.details.delete("1.0", "end")
-        self.details.insert("1.0", text)
+
+        if is_json:
+            self.details_hint.pack_forget()
+
+            self.details.tag_configure("json", justify="left")
+            self.details.insert("1.0", text, ("json",))
+
+            self.details.pack(fill="both", expand=True)
+        else:
+            self.details.pack_forget()
+
+            self.details_hint.configure(text=text)
+            self.details_hint.pack(fill="x", anchor="e")
+
         self.details.configure(state="disabled")
 
     def _show_details(self, _event=None) -> None:
